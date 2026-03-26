@@ -1,0 +1,3 @@
+build/
+*.dSYM/
+Main          # 或你的執行檔名稱
