@@ -8,6 +8,44 @@ using namespace std;
 #define FLAG_ADMIN 1
 #define FLAG_USER 0
 
+void showAdminMainPage(OAAdmin& admin) {
+    while (1) {
+        system("clear");
+        cout << "Login success, welcome back bro!" << admin.username() << endl;
+        cout << "----------------------------------------" << endl;
+        cout << "1. Add an user" << endl;
+        cout << "2. Delete an user" << endl;
+        cout << "3. List all user" << endl;
+        cout << "4. Add a meeting room" << endl;
+        cout << "5. Delete a meeting room" << endl;
+        cout << "6. List all meeting room" << endl;
+        cout << "7. Rest all meeting room status" << endl;
+        cout << "8. Exit admin login" << endl;
+        cout << "----------------------------------------" << endl;
+        cout << "Please input your number: ";
+
+        int c = OAUtils::inputNumber();
+
+        switch (c) {
+            case 1:
+                cout << "Add an user" << endl;
+                break;
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+                goto end;
+        }
+        cout << "Press Enter to continue...";
+        cin.get();
+    }
+end:
+    cout << "Bye, see you next time!" << endl;
+}
+
 // 顯示登錄介面, flag 表示身分
 // 1: 管理員登錄
 // 0: 普通用戶登錄
@@ -33,8 +71,7 @@ void showLogin(int flag) {
         if (&admin == &(OAAdmin::ERROR_ADMIN)) {
             cout << "Login failed, return to previous level" << endl;
         } else {
-            cout << "Login success, welcome back bro!" << admin.username()
-                 << endl;
+            showAdminMainPage(admin);
         }
     } else {
         OAUser& user = dataCenter.loginUser(username, password);
