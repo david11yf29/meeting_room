@@ -1,8 +1,11 @@
 #pragma once
 #include <iostream>
+#include "OADataCenter.h"
 using namespace std;
 
 class OAUser {
+    friend class OADataCenter;
+
    private:
     string _username;
     string _password;
@@ -11,4 +14,8 @@ class OAUser {
    public:
     OAUser();
     OAUser(string username, string password, string department);
+    static OAUser ERROR_USER;
+
+    string username();
+    string department();
 };

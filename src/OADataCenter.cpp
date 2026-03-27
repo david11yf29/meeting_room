@@ -4,8 +4,8 @@ OADataCenter OADataCenter::_instance = OADataCenter();
 
 OADataCenter::OADataCenter() {
     admins.push_back(OAAdmin("admin", "admin"));
-    users.push_back(OAUser("zhangsan", "123123", "行政部"));
-    users.push_back(OAUser("lisi", "123456", "人力資源部"));
+    users.push_back(OAUser("zhangsan", "123123", "Admin Resource"));
+    users.push_back(OAUser("lisi", "123456", "HR Resource"));
 }
 
 OADataCenter& OADataCenter::getInstance() { return _instance; }
@@ -17,4 +17,13 @@ OAAdmin& OADataCenter::loginAdmin(string username, string password) {
         }
     }
     return OAAdmin::ERROR_ADMIN;
+}
+
+OAUser& OADataCenter::loginUser(string username, string password) {
+    for (OAUser& user : users) {
+        if (user._username == username && user._password == password) {
+            return user;
+        }
+    }
+    return OAUser::ERROR_USER;
 }

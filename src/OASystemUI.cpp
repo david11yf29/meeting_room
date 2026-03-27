@@ -36,6 +36,14 @@ void showLogin(int flag) {
             cout << "Login success, welcome back bro!" << admin.username()
                  << endl;
         }
+    } else {
+        OAUser& user = dataCenter.loginUser(username, password);
+        if (&user == &(OAUser::ERROR_USER)) {
+            cout << "Login failed, return to previous level" << endl;
+        } else {
+            cout << "Login success, welcome " << user.department() << "'s "
+                 << user.username() << endl;
+        }
     }
 }
 

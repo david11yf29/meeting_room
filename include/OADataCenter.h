@@ -16,5 +16,5 @@ class OADataCenter {
    public:
     static OADataCenter& getInstance();
     OAAdmin& loginAdmin(string username, string password);
-    // OAUser& loginUser(string username, string password);
+    OAUser& loginUser(string username, string password);
 };
