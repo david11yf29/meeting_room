@@ -17,4 +17,7 @@ class OADataCenter {
     static OADataCenter& getInstance();
     OAAdmin& loginAdmin(string username, string password);
     OAUser& loginUser(string username, string password);
+
+    // 添加用戶, 返回值是否添加成功
+    bool addUser(string username, string passoword, string department);
 };

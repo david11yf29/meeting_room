@@ -16,4 +16,6 @@ class OAAdmin {
     static OAAdmin ERROR_ADMIN;
 
     string username();
+
+    bool addUser(string username, string password, string department);
 };

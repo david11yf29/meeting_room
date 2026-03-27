@@ -27,3 +27,16 @@ OAUser& OADataCenter::loginUser(string username, string password) {
     }
     return OAUser::ERROR_USER;
 }
+
+bool OADataCenter::addUser(string username, string password,
+                           string department) {
+    // 檢查用戶是否存在
+    for (OAUser& user : users) {
+        if (user._username == username) {
+            return false;
+        }
+    }
+    // 添加用戶
+    users.push_back(OAUser(username, password, department));
+    return true;
+}

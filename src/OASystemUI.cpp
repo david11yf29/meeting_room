@@ -8,6 +8,13 @@ using namespace std;
 #define FLAG_ADMIN 1
 #define FLAG_USER 0
 
+void showAdminAddUserPage(OAAdmin& admin) {
+    system("clear");
+    string username, password, department;
+    cout << "Please input username for add user: ";
+    cin >> username;
+}
+
 void showAdminMainPage(OAAdmin& admin) {
     while (1) {
         system("clear");
@@ -28,7 +35,7 @@ void showAdminMainPage(OAAdmin& admin) {
 
         switch (c) {
             case 1:
-                cout << "Add an user" << endl;
+                showAdminAddUserPage(admin);
                 break;
             case 2:
             case 3:
