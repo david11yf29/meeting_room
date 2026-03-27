@@ -3,8 +3,27 @@
 #include "OAUtils.h"
 using namespace std;
 
-// 顯示登錄介面
-void showLogin(int flag) {}
+#define FLAG_ADMIN 1
+#define FLAG_USER 0
+
+// 顯示登錄介面, flag 表示身分
+// 1: 管理員登錄
+// 0: 普通用戶登錄
+void showLogin(int flag) {
+    cout << "\033[2J\033[H";
+    if (flag == FLAG_ADMIN) {
+        cout << "Admin Login" << endl;
+    } else {
+        cout << "User Login" << endl;
+    }
+    cout << "----------------------------------------" << endl;
+
+    string username, password;
+    cout << "Please input Username: ";
+    cin >> username;
+    cout << "Please input Password: ";
+    cin >> password;
+}
 
 void OASystemUI::displayMainPage() {
     while (1) {
@@ -21,10 +40,10 @@ void OASystemUI::displayMainPage() {
 
         switch (choice) {
             case 1:
-                cout << "Admin Login" << endl;
+                showLogin(FLAG_ADMIN);
                 break;
             case 2:
-                cout << "User Login" << endl;
+                showLogin(FLAG_USER);
                 break;
             case 3:
                 goto end;
