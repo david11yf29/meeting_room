@@ -1,7 +1,8 @@
 #include <iostream>
-
+#include "OASystemUI.h"
 using namespace std;
 
-void test01() { string str; }
-
-int main() { return EXIT_SUCCESS; };
+int main() {
+    OASystemUI::displayMainPage();
+    return EXIT_SUCCESS;
+};
