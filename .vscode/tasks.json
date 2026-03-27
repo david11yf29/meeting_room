@@ -3,6 +3,19 @@
     "tasks": [
         {
             "type": "shell",
+            "label": "Create build directory",
+            "command": "mkdir",
+            "args": [
+                "-p",
+                "${workspaceFolder}/build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
             "label": "C/C++: clang++ build project",
             "command": "/usr/bin/clang++",
             "args": [
@@ -25,7 +38,8 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "dependsOn": "Create build directory"
         }
     ]
 }
