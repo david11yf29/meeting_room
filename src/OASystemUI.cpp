@@ -1,6 +1,8 @@
 #include "OASystemUI.h"
 #include <iostream>
 #include "OAUtils.h"
+#include "OADataCenter.h"
+
 using namespace std;
 
 #define FLAG_ADMIN 1
@@ -23,6 +25,18 @@ void showLogin(int flag) {
     cin >> username;
     cout << "Please input Password: ";
     cin >> password;
+
+    OADataCenter& dataCenter = OADataCenter::getInstance();
+
+    if (flag == FLAG_ADMIN) {
+        OAAdmin& admin = dataCenter.loginAdmin(username, password);
+        if (&admin == &(OAAdmin::ERROR_ADMIN)) {
+            cout << "Login failed, return to previous level" << endl;
+        } else {
+            cout << "Login success, welcome back bro!" << admin.username()
+                 << endl;
+        }
+    }
 }
 
 void OASystemUI::displayMainPage() {
@@ -33,7 +47,7 @@ void OASystemUI::displayMainPage() {
         cout << "2. User Login" << endl;
         cout << "3. Quit" << endl;
         cout << "----------------------------------------" << endl;
-        cout << "Please Select a number: " << endl;
+        cout << "Please select a number: " << endl;
 
         // 讓用戶進行控制台的輸入選擇
         int choice = OAUtils::inputNumber();
