@@ -20,6 +20,8 @@ class OADataCenter {
 
     // 添加用戶, 返回值是否添加成功
     bool addUser(string username, string passoword, string department);
-
+    // 刪除用戶
     bool deleteUser(string username);
+
+    vector<OAUser> getUsers();
 };

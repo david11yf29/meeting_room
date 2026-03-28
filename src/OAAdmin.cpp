@@ -18,4 +18,13 @@ bool OAAdmin::deleteUser(string username) {
     return OADataCenter::getInstance().deleteUser(username);
 }
 
+void OAAdmin::showAllUsers() {
+    vector<OAUser> users = OADataCenter::getInstance().getUsers();
+    system("clear");
+    for (OAUser& u : users) {
+        cout << "User: " << u.username() << ", Department: " << u.department()
+             << endl;
+    }
+}
+
 OAAdmin OAAdmin::ERROR_ADMIN = OAAdmin();

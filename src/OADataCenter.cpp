@@ -56,3 +56,8 @@ bool OADataCenter::deleteUser(string username) {
     users.erase(it);
     return true;
 }
+
+vector<OAUser> OADataCenter::getUsers() {
+    vector<OAUser> users_back(users);
+    return users_back;
+}

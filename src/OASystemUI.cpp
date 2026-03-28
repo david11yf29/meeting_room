@@ -40,6 +40,8 @@ void showAdminDeleteUserPage(OAAdmin& admin) {
     }
 }
 
+void showAdminListUsers(OAAdmin& admin) { admin.showAllUsers(); }
+
 void showAdminMainPage(OAAdmin& admin) {
     while (1) {
         system("clear");
@@ -66,6 +68,8 @@ void showAdminMainPage(OAAdmin& admin) {
                 showAdminDeleteUserPage(admin);
                 break;
             case 3:
+                showAdminListUsers(admin);
+                break;
             case 4:
             case 5:
             case 6:
