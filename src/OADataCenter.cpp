@@ -6,6 +6,9 @@ OADataCenter::OADataCenter() {
     admins.push_back(OAAdmin("admin", "admin"));
     users.push_back(OAUser("zhangsan", "123123", "Admin Resource"));
     users.push_back(OAUser("lisi", "123456", "HR Resource"));
+    rooms.push_back(OAMeetingRoom(1, 10));
+    rooms.push_back(OAMeetingRoom(2, 6));
+    rooms.push_back(OAMeetingRoom(3, 4));
 }
 
 OADataCenter& OADataCenter::getInstance() { return _instance; }
@@ -57,7 +60,39 @@ bool OADataCenter::deleteUser(string username) {
     return true;
 }
 
+bool OADataCenter::addMeetingRoom(int mid, int capacity) {
+    // 檢查會議室是否存在
+    for (OAMeetingRoom& room : rooms) {
+        if (room._mid == mid) {
+            return false;
+        }
+    }
+    // 添加會議室
+    rooms.push_back(OAMeetingRoom(mid, capacity));
+    return true;
+}
+
+bool OADataCenter::deleteMeetingRoom(int mid) {
+    vector<OAMeetingRoom>::iterator it = rooms.begin();
+    for (; it != rooms.end(); it++) {
+        if (it->_mid == mid) {
+            break;
+        }
+    }
+
+    if (it == rooms.end()) {
+        return false;
+    }
+
+    rooms.erase(it);
+    return true;
+}
+
 vector<OAUser> OADataCenter::getUsers() {
     vector<OAUser> users_back(users);
     return users_back;
+}
+
+vector<OAMeetingRoom> OADataCenter::getRooms() {
+    return vector<OAMeetingRoom>(rooms);
 }

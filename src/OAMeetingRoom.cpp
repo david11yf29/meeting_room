@@ -1,4 +1,5 @@
 #include "OAMeetingRoom.h"
+#include "OAUser.h"
 
 OAMeetingRoom::OAMeetingRoom() {
     _mid = 0;
