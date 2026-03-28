@@ -13,6 +13,18 @@ void showAdminAddUserPage(OAAdmin& admin) {
     string username, password, department;
     cout << "Please input username for add user: ";
     cin >> username;
+    cout << "Please input password for this user: ";
+    cin >> password;
+    cout << "Please input department for add user: ";
+    cin >> department;
+
+    if (admin.addUser(username, password, department)) {
+        cout << "Add user successfully" << endl;
+    } else {
+        cout << "Add user failed, this user already existed" << endl;
+    }
+    cout << "Press Enter to continue...";
+    cin.get();
 }
 
 void showAdminMainPage(OAAdmin& admin) {
