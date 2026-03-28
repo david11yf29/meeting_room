@@ -42,13 +42,20 @@ void showAdminDeleteUserPage(OAAdmin& admin) {
 
 void showAdminListUsers(OAAdmin& admin) { admin.showAllUsers(); }
 
-void showAdminMeetingRoomPage(OAAdmin& admin) {
+void showAdminAddMeetingRoomPage(OAAdmin& admin) {
     system("clear");
     int mid, capacity;
     cout << "Please input the No. of meeting room: ";
     cin >> mid;
     cout << "Please input the capacity of meeting room: ";
     cin >> capacity;
+
+    if (admin.addMeetingRoom(mid, capacity)) {
+        cout << "Add meeting room success! " << endl;
+    } else {
+        cout << "Add meeting room fail. This meeting room already existed "
+             << endl;
+    }
 }
 
 void showAdminMainPage(OAAdmin& admin) {
@@ -80,6 +87,8 @@ void showAdminMainPage(OAAdmin& admin) {
                 showAdminListUsers(admin);
                 break;
             case 4:
+                showAdminAddMeetingRoomPage(admin);
+                break;
             case 5:
             case 6:
             case 7:
