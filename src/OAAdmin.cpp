@@ -14,4 +14,8 @@ bool OAAdmin::addUser(string username, string password, string department) {
     return OADataCenter::getInstance().addUser(username, password, department);
 }
 
+bool OAAdmin::deleteUser(string username) {
+    return OADataCenter::getInstance().deleteUser(username);
+}
+
 OAAdmin OAAdmin::ERROR_ADMIN = OAAdmin();

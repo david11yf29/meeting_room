@@ -20,4 +20,6 @@ class OADataCenter {
 
     // 添加用戶, 返回值是否添加成功
     bool addUser(string username, string passoword, string department);
+
+    bool deleteUser(string username);
 };

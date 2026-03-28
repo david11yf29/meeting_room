@@ -40,3 +40,19 @@ bool OADataCenter::addUser(string username, string password,
     users.push_back(OAUser(username, password, department));
     return true;
 }
+
+bool OADataCenter::deleteUser(string username) {
+    auto it = users.begin();
+    for (; it != users.end(); it++) {
+        if (it->username() == username) {
+            break;
+        }
+    }
+
+    if (it == users.end()) {
+        return false;
+    }
+
+    users.erase(it);
+    return true;
+}

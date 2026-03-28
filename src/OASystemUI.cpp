@@ -27,6 +27,19 @@ void showAdminAddUserPage(OAAdmin& admin) {
     cin.get();
 }
 
+void showAdminDeleteUserPage(OAAdmin& admin) {
+    system("clear");
+    string username;
+    cout << "Please input user you want to delete: ";
+    cin >> username;
+
+    if (admin.deleteUser(username)) {
+        cout << "Delete user successfully" << endl;
+    } else {
+        cout << "Delete user fail, there is no such user" << endl;
+    }
+}
+
 void showAdminMainPage(OAAdmin& admin) {
     while (1) {
         system("clear");
@@ -50,6 +63,8 @@ void showAdminMainPage(OAAdmin& admin) {
                 showAdminAddUserPage(admin);
                 break;
             case 2:
+                showAdminDeleteUserPage(admin);
+                break;
             case 3:
             case 4:
             case 5:

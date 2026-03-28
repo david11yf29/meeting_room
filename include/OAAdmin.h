@@ -18,4 +18,6 @@ class OAAdmin {
     string username();
 
     bool addUser(string username, string password, string department);
+
+    bool deleteUser(string username);
 };
