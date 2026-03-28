@@ -26,6 +26,14 @@
 18. [範圍式 for 迴圈](#18-範圍式-for-迴圈)
 19. [錯誤處理模式](#19-錯誤處理模式)
 20. [完整程式碼解析](#20-完整程式碼解析)
+21. [指標（Pointer）](#21-指標pointer)
+22. [箭頭運算子（->）](#22-箭頭運算子)
+23. [迭代器（Iterator）](#23-迭代器iterator)
+24. [auto 關鍵字](#24-auto-關鍵字)
+25. [前向宣告（Forward Declaration）](#25-前向宣告forward-declaration)
+26. [Facade 設計模式](#26-facade-設計模式)
+27. [cin.get() 與 system() 呼叫](#27-cinge-與-system-呼叫)
+28. [OAMeetingRoom 完整解析](#28-oameetingroom-完整解析)
 
 ---
 
@@ -1243,6 +1251,606 @@ int main() {
 
 ---
 
+## 21. 指標（Pointer）
+
+### 什麼是指標？
+
+想像你家的地址。**地址**本身不是你的家，它只是告訴你家在哪裡。**指標**就是記憶體地址——它不是物件本身，而是告訴你物件住在記憶體的哪個位置。
+
+```
+記憶體（想像成一排房子）：
+
+地址 1000 → [OAUser "zhangsan"]
+地址 1004 → [OAUser "lisi"]
+地址 1008 → [OAUser "ERROR_USER"]
+
+OAUser* _user = 1008;  // _user「指向」ERROR_USER 住的地址
+```
+
+### 宣告指標
+
+```cpp
+int x = 42;
+int* p;   // p 是一個「指向 int 的指標」
+          // 星號 * 放在型別後面表示「這是指標」
+```
+
+**本專案中的範例（OAMeetingRoom.h）：**
+```cpp
+class OAMeetingRoom {
+   private:
+    OAUser* _user;  // 指向 OAUser 物件的指標
+                    // 代表「是誰預約了這個會議室」
+};
+```
+
+### 取得地址（& 運算子）
+
+`&` 放在變數前面，意思是「給我這個變數的記憶體地址」：
+
+```cpp
+int x = 42;
+int* p = &x;  // p = x 的地址（比如 1000）
+
+OAUser* _user = &OAUser::ERROR_USER;  // 指向 ERROR_USER 物件的地址
+```
+
+### 解參考（* 運算子）
+
+`*` 放在指標前面，意思是「去那個地址，把那裡的東西拿給我」：
+
+```cpp
+int x = 42;
+int* p = &x;   // p 存著 x 的地址
+int y = *p;    // *p = 「去 p 的地址，取得那裡的值」= 42
+```
+
+### 指標在本專案中的用途
+
+**OAMeetingRoom.cpp 中的初始化：**
+```cpp
+OAMeetingRoom::OAMeetingRoom(int mid, int capacity) {
+    _mid = mid;
+    _capacity = capacity;
+    _user = &OAUser::ERROR_USER;  // 房間剛建立，沒有人預約
+                                  // 讓 _user 指向「錯誤用戶」代表「空房間」
+}
+```
+
+**OADataCenter.cpp 中的清除預約：**
+```cpp
+void OADataCenter::clearMeetingRoomStatus() {
+    for (OAMeetingRoom& room : rooms) {
+        room._user = &OAUser::ERROR_USER;  // 把每間房間都設為「沒人預約」
+    }
+}
+```
+
+### 指標比較
+
+```cpp
+// 這是本專案中檢查「房間是否空著」的方式：
+if (m.user() == &(OAUser::ERROR_USER)) {
+    cout << "reservable!" << endl;  // 指標指向 ERROR_USER -> 沒人預約
+} else {
+    cout << "reserved!" << endl;    // 指標指向真實用戶 -> 有人預約了
+}
+```
+
+**解釋：** `m.user()` 回傳一個 `OAUser*` 指標。我們把它和 `&OAUser::ERROR_USER`（ERROR_USER 的地址）比較。如果兩個地址相同，代表這個房間「指向」ERROR_USER，也就是「空房間」。
+
+### 登入驗證中的指標比較
+
+```cpp
+OAAdmin& admin = dataCenter.loginAdmin(username, password);
+if (&admin == &(OAAdmin::ERROR_ADMIN)) {
+    cout << "Login failed";
+}
+```
+
+- `loginAdmin()` 回傳 `OAAdmin&`（參考）
+- `&admin` 取得這個參考所指向的物件的地址
+- 如果地址等於 `ERROR_ADMIN` 的地址，代表登入失敗
+
+### 指標 vs 參考 vs 值
+
+| 特性 | 值 | 參考（&） | 指標（*） |
+|------|----|-----------|---------|
+| 可以為空 | 不行 | 不行 | 可以（nullptr） |
+| 可以重新指向 | — | 不行（一旦綁定就固定） | 可以 |
+| 語法 | `OAUser u` | `OAUser& r = u` | `OAUser* p = &u` |
+| 存取成員 | `u.method()` | `r.method()` | `p->method()` |
+
+---
+
+## 22. 箭頭運算子（->）
+
+### 什麼是 -> ？
+
+當你有一個**指標**，而你想呼叫它所指向物件的方法，你有兩種方式：
+
+```cpp
+OAUser* p = &someUser;
+
+// 方法一：先解參考再用點運算子（麻煩）
+(*p).username();
+
+// 方法二：用箭頭運算子（簡潔）
+p->username();
+```
+
+`p->method()` 就是 `(*p).method()` 的簡寫。
+
+### 本專案中的範例
+
+**OAAdmin.cpp 中的 showAllMeetingRooms()：**
+```cpp
+void OAAdmin::showAllMeetingRooms() {
+    vector<OAMeetingRoom> rooms = OADataCenter::getInstance().getRooms();
+    for (OAMeetingRoom& m : rooms) {
+        if (m.user() == &(OAUser::ERROR_USER)) {
+            cout << ", reservable!" << endl;
+        } else {
+            // m.user() 回傳 OAUser*（指標）
+            // 所以用 -> 來呼叫指標所指物件的方法
+            cout << m.user()->department()   // OAUser* -> department()
+                 << m.user()->username()     // OAUser* -> username()
+                 << endl;
+        }
+    }
+}
+```
+
+### 記憶口訣
+
+- **點運算子 `.`** → 直接使用物件或參考時用
+- **箭頭運算子 `->`** → 透過指標存取物件時用
+
+```cpp
+OAUser  u;   // 物件（值）
+OAUser& r = u;  // 參考
+OAUser* p = &u; // 指標
+
+u.username();   // 用點
+r.username();   // 用點（參考和值一樣）
+p->username();  // 用箭頭（指標）
+```
+
+---
+
+## 23. 迭代器（Iterator）
+
+### 什麼是迭代器？
+
+迭代器是一個「位置標記」，告訴你現在在容器的哪個位置。你可以把它想像成書籤——它記住你讀到哪裡了，而且可以向前翻頁。
+
+```
+vector<OAUser>: [zhangsan] [lisi] [wangwu]
+                    ↑
+                  迭代器（目前指向 zhangsan）
+```
+
+### 宣告迭代器
+
+```cpp
+vector<OAUser> users;
+
+// 方法一：明確寫出型別
+vector<OAUser>::iterator it = users.begin();
+
+// 方法二：用 auto（編譯器自動推導型別，更簡潔）
+auto it = users.begin();
+```
+
+### begin() 和 end()
+
+```cpp
+vector<int> v = {10, 20, 30};
+//               ↑           ↑
+//           begin()       end()（指向最後一個元素之後的位置！）
+```
+
+**重要**：`end()` 不指向最後一個元素，而是指向「超出末尾」的位置。這是 C++ 的慣例，用來表示「已經到達終點」。
+
+### 用迭代器遍歷
+
+```cpp
+vector<OAUser> users;
+for (auto it = users.begin(); it != users.end(); it++) {
+    // *it 取得目前位置的元素
+    cout << (*it).username() << endl;
+    // 或
+    cout << it->username() << endl;  // 迭代器也可以用 ->
+}
+```
+
+### 本專案中的迭代器用法
+
+**OADataCenter.cpp 中的 deleteUser()：**
+```cpp
+bool OADataCenter::deleteUser(string username) {
+    auto it = users.begin();       // 從頭開始
+    for (; it != users.end(); it++) {  // 一個一個往後走
+        if (it->username() == username) {  // 找到了！
+            break;                 // 停下來，it 現在指向要刪除的元素
+        }
+    }
+
+    if (it == users.end()) {       // 走完了都沒找到
+        return false;
+    }
+
+    users.erase(it);               // 刪除 it 指向的元素
+    return true;
+}
+```
+
+**deleteMeetingRoom() 的另一種寫法（明確型別）：**
+```cpp
+bool OADataCenter::deleteMeetingRoom(int mid) {
+    vector<OAMeetingRoom>::iterator it = rooms.begin();  // 明確寫出迭代器型別
+    for (; it != rooms.end(); it++) {
+        if (it->_mid == mid) {
+            break;
+        }
+    }
+    if (it == rooms.end()) return false;
+    rooms.erase(it);
+    return true;
+}
+```
+
+### erase() 方法
+
+`erase()` 接受一個迭代器，刪除它所指向的元素，並自動把後面的元素往前移：
+
+```cpp
+vector<int> v = {1, 2, 3, 4, 5};
+auto it = v.begin() + 2;  // 指向 3
+v.erase(it);              // 刪除 3
+// v 現在是 {1, 2, 4, 5}
+```
+
+### 範圍式 for vs 迭代器 for
+
+```cpp
+// 範圍式 for（簡單遍歷，不能刪除）
+for (OAUser& u : users) {
+    cout << u.username();
+}
+
+// 迭代器 for（可以搭配 erase 刪除元素）
+for (auto it = users.begin(); it != users.end(); it++) {
+    if (it->username() == "delete_me") {
+        users.erase(it);  // 刪除後 it 就失效了，所以要 break
+        break;
+    }
+}
+```
+
+---
+
+## 24. auto 關鍵字
+
+### 什麼是 auto？
+
+`auto` 告訴編譯器：「你自己去推斷這個變數是什麼型別，我懶得寫。」
+
+```cpp
+auto x = 42;           // 編譯器知道 x 是 int
+auto name = "Alice";   // 編譯器知道 name 是 const char*
+auto it = v.begin();   // 編譯器知道 it 是 vector<OAUser>::iterator
+```
+
+### 為什麼需要 auto？
+
+有些型別名字很長，很難寫：
+
+```cpp
+// 不用 auto：很長
+vector<OAMeetingRoom>::iterator it = rooms.begin();
+
+// 用 auto：簡潔
+auto it = rooms.begin();
+```
+
+兩者完全等效，但 `auto` 更簡潔，也更不容易打錯。
+
+### 本專案中的 auto
+
+**OADataCenter.cpp 中的 deleteUser()：**
+```cpp
+auto it = users.begin();
+// 等同於：
+// vector<OAUser>::iterator it = users.begin();
+```
+
+### auto 的限制
+
+- `auto` **必須**在宣告時就初始化（因為編譯器需要看右邊的值才能推斷型別）
+- 不能用 `auto` 宣告函式參數（在 C++20 之前）
+
+```cpp
+auto x;        // 錯誤！沒有初始值，編譯器不知道型別
+auto x = 5;    // 正確！推斷為 int
+```
+
+---
+
+## 25. 前向宣告（Forward Declaration）
+
+### 什麼是前向宣告？
+
+有時候兩個類別互相需要對方，這會造成「循環引入」的問題。前向宣告是一種說「我保證這個類別存在，但詳細定義在別的地方」的方式。
+
+### 問題：循環依賴
+
+```
+OADataCenter.h 引入了 OAAdmin.h
+OAAdmin.h 又引入了 OADataCenter.h  ← 循環！
+```
+
+### 解決方案：前向宣告
+
+**OADataCenter.h 中的寫法：**
+```cpp
+#pragma once
+#include <vector>
+#include "OAAdmin.h"
+#include "OAUser.h"
+#include "OAMeetingRoom.h"
+
+// 前向宣告：「我保證這些類別存在」
+class OAAdmin;
+class OAUser;
+class OAMeetingRoom;
+
+class OADataCenter {
+   private:
+    vector<OAAdmin> admins;   // 編譯器現在知道 OAAdmin 存在，可以用
+    vector<OAUser> users;
+    // ...
+};
+```
+
+**OAMeetingRoom.h 中的寫法：**
+```cpp
+#pragma once
+#include "OAUser.h"
+#include "OADataCenter.h"
+
+class OAUser;  // 前向宣告：「OAUser 這個類別存在」
+
+class OAMeetingRoom {
+   private:
+    OAUser* _user;  // 可以宣告指向 OAUser 的指標（因為指標大小固定）
+};
+```
+
+### 為什麼指標可以用前向宣告，值不行？
+
+```cpp
+class Foo;  // 前向宣告
+
+Foo f;      // 錯誤！編譯器需要知道 Foo 有多大才能分配空間
+Foo* p;     // 正確！指標大小固定（通常 8 bytes），不需要知道 Foo 的細節
+```
+
+這就是為什麼 `OAMeetingRoom` 用 `OAUser*`（指標）而不是 `OAUser`（值）的原因之一。
+
+---
+
+## 26. Facade 設計模式
+
+### 什麼是 Facade（門面）模式？
+
+Facade 模式就像飯店的前台接待員。客人不需要知道「廚房、清潔部、保安部」的細節，只要跟接待員說「我要一杯咖啡」，接待員會幫你協調好一切。
+
+### OAAdmin 就是 Facade
+
+`OAAdmin` 是一個「前台」，幫 `OASystemUI` 跟 `OADataCenter` 溝通。UI 不需要直接跟資料中心打交道：
+
+```
+OASystemUI （客人）
+    ↓
+OAAdmin （接待員 / Facade）
+    ↓
+OADataCenter （後台）
+```
+
+**OAAdmin.cpp 的實作：**
+```cpp
+// OAAdmin 自己什麼都沒做，全部委託給 OADataCenter
+bool OAAdmin::addUser(string username, string password, string department) {
+    return OADataCenter::getInstance().addUser(username, password, department);
+    //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ 委託給資料中心做實際工作
+}
+
+bool OAAdmin::deleteUser(string username) {
+    return OADataCenter::getInstance().deleteUser(username);
+}
+
+void OAAdmin::showAllUsers() {
+    vector<OAUser> users = OADataCenter::getInstance().getUsers();
+    // 然後顯示資料
+    for (OAUser& u : users) {
+        cout << "User: " << u.username() << ", Department: " << u.department() << endl;
+    }
+}
+```
+
+### Facade 的好處
+
+1. **簡化介面**：`OASystemUI` 只需要呼叫 `admin.addUser()`，不需要知道資料如何儲存
+2. **降低耦合**：如果未來 `OADataCenter` 改了，只需要更新 `OAAdmin`，不用改 UI
+3. **更好的組織**：每個類別只負責一件事
+
+---
+
+## 27. cin.get() 與 system() 呼叫
+
+### cin.get() — 等待使用者按 Enter
+
+```cpp
+cout << "Press Enter to continue...";
+cin.get();  // 讀取一個字元（等使用者按 Enter）
+```
+
+**為什麼需要這個？**
+
+程式執行太快，使用者來不及看輸出。`cin.get()` 讓程式暫停，等使用者按下 Enter 再繼續。
+
+**一個常見的陷阱：**
+
+```cpp
+cin >> choice;    // 讀取數字後，Enter 鍵還留在緩衝區
+cin.get();        // 第一次呼叫只是消耗掉那個 Enter
+cin.get();        // 第二次才真的等使用者
+```
+
+這是為什麼有些地方用了 `cin.ignore()` 加 `cin.get()`。
+
+### system("clear") — 清除螢幕
+
+```cpp
+system("clear");  // 在 macOS/Linux 上清除終端機螢幕
+```
+
+**system() 是什麼？**
+
+`system()` 讓你的 C++ 程式執行一個作業系統指令。就像你在終端機輸入指令一樣。
+
+```cpp
+system("clear");  // 相當於在終端機輸入 clear
+system("ls");     // 相當於在終端機輸入 ls（列出檔案）
+```
+
+**缺點和注意事項：**
+- `system("clear")` 只在 macOS/Linux 有效；Windows 要用 `system("cls")`
+- 這是「平台依賴」的程式碼——在不同作業系統可能無法運作
+- 本專案也用了 ANSI 跳脫碼的替代方式：`cout << "\033[2J\033[H";`
+
+### \033[2J\033[H — ANSI 跳脫碼清除螢幕
+
+```cpp
+cout << "\033[2J\033[H";
+// \033  = ESC 字元（ASCII 27）
+// [2J   = 清除整個螢幕
+// [H    = 把游標移到左上角
+```
+
+這是另一種清除螢幕的方式，比 `system("clear")` 更「純 C++」，不需要呼叫作業系統指令。
+
+---
+
+## 28. OAMeetingRoom 完整解析
+
+### 類別結構
+
+**OAMeetingRoom.h：**
+```cpp
+class OAMeetingRoom {
+    friend class OADataCenter;  // 允許 OADataCenter 存取私有成員
+
+   private:
+    int _mid;       // 會議室編號（Meeting Room ID）
+    int _capacity;  // 容納人數
+    OAUser* _user;  // 指向預約者的指標
+                    // 如果指向 ERROR_USER → 沒人預約（空房）
+                    // 如果指向真實 OAUser → 有人預約了
+
+   public:
+    OAMeetingRoom();                      // 預設建構函式
+    OAMeetingRoom(int mid, int capacity); // 帶參數建構函式
+
+    int mid();       // 回傳房間編號
+    int capacity();  // 回傳容納人數
+    OAUser* user();  // 回傳預約者的指標（注意：回傳指標）
+};
+```
+
+### 為什麼用指標（OAUser*）而不是值（OAUser）？
+
+1. **表達「沒有人」的狀態**：指標可以指向特殊的 `ERROR_USER` 來表示「空房間」
+2. **避免複製**：如果用值，每次 OAUser 修改資料，OAMeetingRoom 裡的副本就過時了
+3. **前向宣告需求**：OAMeetingRoom.h 需要在知道 OAUser 完整定義前就使用它
+
+### 建構函式實作
+
+**OAMeetingRoom.cpp：**
+```cpp
+OAMeetingRoom::OAMeetingRoom() {
+    _mid = 0;
+    _capacity = 0;
+    _user = &OAUser::ERROR_USER;  // 預設：沒有人預約
+}
+
+OAMeetingRoom::OAMeetingRoom(int mid, int capacity) {
+    _mid = mid;
+    _capacity = capacity;
+    _user = &OAUser::ERROR_USER;  // 新建的房間：沒有人預約
+}
+```
+
+### 預約狀態的設計
+
+```
+OAMeetingRoom._user 的兩種狀態：
+
+狀態一：沒人預約
+  _user ──→ OAUser::ERROR_USER（靜態「錯誤」物件）
+
+狀態二：有人預約
+  _user ──→ OAUser("zhangsan", "123123", "Admin Resource")
+```
+
+**判斷是否有人預約（OAAdmin.cpp）：**
+```cpp
+if (m.user() == &(OAUser::ERROR_USER)) {
+    cout << ", reservable!" << endl;   // 空房
+} else {
+    cout << m.user()->department()     // 有人，顯示預約者資訊
+         << "'s " << m.user()->username() << endl;
+}
+```
+
+### 初始資料（OADataCenter.cpp）
+
+系統啟動時自動建立 3 間會議室：
+
+```cpp
+OADataCenter::OADataCenter() {
+    // 用戶資料
+    admins.push_back(OAAdmin("admin", "admin"));
+    users.push_back(OAUser("zhangsan", "123123", "Admin Resource"));
+    users.push_back(OAUser("lisi", "123456", "HR Resource"));
+
+    // 會議室資料
+    rooms.push_back(OAMeetingRoom(1, 10));  // 1 號室，10 人
+    rooms.push_back(OAMeetingRoom(2, 6));   // 2 號室，6 人
+    rooms.push_back(OAMeetingRoom(3, 4));   // 3 號室，4 人
+}
+```
+
+### getUsers() 和 getRooms() — 回傳副本
+
+```cpp
+vector<OAUser> OADataCenter::getUsers() {
+    vector<OAUser> users_back(users);  // 複製整個 vector
+    return users_back;                 // 回傳副本
+}
+
+vector<OAMeetingRoom> OADataCenter::getRooms() {
+    return vector<OAMeetingRoom>(rooms);  // 同樣回傳副本
+}
+```
+
+**為什麼回傳副本而不是參考？**
+
+為了安全！如果回傳參考，外部程式碼可能會修改內部資料，繞過 `OADataCenter` 的保護。回傳副本就像「影印機」——你拿到的是複印件，不是原始文件。
+
+---
+
 ## C++ 概念總結
 
 | 概念 | 使用位置 |
@@ -1265,17 +1873,28 @@ int main() {
 | 流程控制（while、switch、if） | OASystemUI.cpp |
 | 範圍式 for | OADataCenter.cpp |
 | 範圍解析（::） | 所有 .cpp 檔案 |
-| 標記值錯誤處理 | OAAdmin::ERROR_ADMIN |
+| 標記值錯誤處理 | OAAdmin::ERROR_ADMIN、OAUser::ERROR_USER |
+| 指標（`*`） | OAMeetingRoom._user（`OAUser*`） |
+| 取地址（`&`） | `&OAUser::ERROR_USER`、`&admin` |
+| 箭頭運算子（`->`） | `m.user()->username()` |
+| 迭代器 | `deleteUser()`、`deleteMeetingRoom()` 中 |
+| `auto` 關鍵字 | `auto it = users.begin()` |
+| 前向宣告 | `OADataCenter.h`、`OAMeetingRoom.h` |
+| Facade 設計模式 | OAAdmin 委託 OADataCenter |
+| `cin.get()` | 暫停等待使用者按 Enter |
+| `system("clear")` | 清除終端機螢幕 |
 
 ---
 
 ## 後續學習建議
 
-1. **練習**：嘗試為這個系統添加新功能
-2. **記憶體管理**：學習指標、`new`、`delete`、智慧指標
-3. **繼承**：學習類別階層和虛擬函式
-4. **模板**：學習泛型程式設計
-5. **現代 C++**：探索 C++11/14/17/20 特性
-6. **STL**：學習更多容器（map、set、list）和演算法
+1. **練習**：嘗試實作「用戶預約會議室」的功能（目前只有顯示，沒有實際預約邏輯）
+2. **指標進階**：學習 `new`/`delete` 動態分配記憶體、`nullptr`、智慧指標（`unique_ptr`、`shared_ptr`）
+3. **繼承**：學習類別階層（`OAAdmin` 和 `OAUser` 其實可以繼承同一個基底類別）和虛擬函式
+4. **模板**：學習泛型程式設計（`vector<T>` 本身就是模板的應用）
+5. **現代 C++**：探索 C++11/14/17/20 特性，包括 `std::optional`、`std::variant`
+6. **STL**：學習更多容器（`map` 用來建立 ID 到物件的映射、`set`、`list`）和演算法
+7. **例外處理**：`try`/`catch`/`throw` — 比本專案的標記值模式更現代的錯誤處理方式
+8. **資料持久化**：使用檔案 I/O（`fstream`）儲存資料，讓重啟後資料不會消失
 
 祝學習愉快！
