@@ -2,13 +2,15 @@
 #include "OAUser.h"
 #include "OADataCenter.h"
 
+class OAUser;
+
 class OAMeetingRoom {
     friend class OADataCenter;
 
    private:
     int _mid;
     int _capacity;
-    OAUser& _user = OAUser::ERROR_USER;
+    OAUser* _user;
 
    public:
     OAMeetingRoom();
@@ -16,5 +18,5 @@ class OAMeetingRoom {
 
     int mid();
     int capacity();
-    OAUser& user();
+    OAUser* user();
 };

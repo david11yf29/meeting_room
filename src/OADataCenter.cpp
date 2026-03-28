@@ -88,6 +88,12 @@ bool OADataCenter::deleteMeetingRoom(int mid) {
     return true;
 }
 
+void OADataCenter::clearMeetingRoomStatus() {
+    for (OAMeetingRoom& room : rooms) {
+        room._user = &OAUser::ERROR_USER;
+    }
+}
+
 vector<OAUser> OADataCenter::getUsers() {
     vector<OAUser> users_back(users);
     return users_back;

@@ -42,6 +42,15 @@ void showAdminDeleteUserPage(OAAdmin& admin) {
 
 void showAdminListUsers(OAAdmin& admin) { admin.showAllUsers(); }
 
+void showAdminMeetingRoomPage(OAAdmin& admin) {
+    system("clear");
+    int mid, capacity;
+    cout << "Please input the No. of meeting room: ";
+    cin >> mid;
+    cout << "Please input the capacity of meeting room: ";
+    cin >> capacity;
+}
+
 void showAdminMainPage(OAAdmin& admin) {
     while (1) {
         system("clear");

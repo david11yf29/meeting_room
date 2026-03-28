@@ -31,6 +31,8 @@ class OADataCenter {
     bool addMeetingRoom(int mid, int capacity);
     // 刪除會議室
     bool deleteMeetingRoom(int mid);
+    // 清除所有會議室狀態
+    void clearMeetingRoomStatus();
 
     vector<OAUser> getUsers();
     vector<OAMeetingRoom> getRooms();

@@ -27,4 +27,31 @@ void OAAdmin::showAllUsers() {
     }
 }
 
+bool OAAdmin::addMeetingRoom(int mid, int capacity) {
+    return OADataCenter::getInstance().addMeetingRoom(mid, capacity);
+}
+
+bool OAAdmin::deleteMeetingRoom(int mid) {
+    return OADataCenter::getInstance().deleteMeetingRoom(mid);
+}
+
+void OAAdmin::clearMeetingRoomStatus() {
+    OADataCenter::getInstance().clearMeetingRoomStatus();
+}
+
+void OAAdmin::showAllMeetingRooms() {
+    vector<OAMeetingRoom> rooms = OADataCenter::getInstance().getRooms();
+    for (OAMeetingRoom& m : rooms) {
+        cout << "MeetingRoom No.: " << m.mid()
+             << ", capacity: " << m.capacity();
+        if (m.user() == &(OAUser::ERROR_USER)) {
+            cout << ", reservable! " << endl;
+        } else {
+            cout << ", this meeting room is reserved by "
+                 << m.user()->department() << "'s " << m.user()->username() << "!"
+                 << endl;
+        }
+    }
+}
+
 OAAdmin OAAdmin::ERROR_ADMIN = OAAdmin();

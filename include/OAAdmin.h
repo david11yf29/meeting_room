@@ -19,6 +19,10 @@ class OAAdmin {
 
     bool addUser(string username, string password, string department);
     bool deleteUser(string username);
-
     void showAllUsers();
+
+    bool addMeetingRoom(int mid, int capacity);
+    bool deleteMeetingRoom(int mid);
+    void clearMeetingRoomStatus();
+    void showAllMeetingRooms();
 };
