@@ -4,5 +4,6 @@
     "files.associations": {
         "cpp_class.cpp": "plaintext",
         "h_class.h": "plaintext"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
