@@ -4,11 +4,18 @@ OADataCenter OADataCenter::_instance = OADataCenter();
 
 OADataCenter::OADataCenter() {
     admins.push_back(OAAdmin("admin", "admin"));
+
     users.push_back(OAUser("zhangsan", "123123", "Admin Resource"));
     users.push_back(OAUser("lisi", "123456", "HR Resource"));
+
     rooms.push_back(OAMeetingRoom(1, 10));
     rooms.push_back(OAMeetingRoom(2, 6));
     rooms.push_back(OAMeetingRoom(3, 4));
+
+    OAUser* user = new OAUser("xiaoxiao", "123123", "abc");
+    OAMeetingRoom r(4, 12);
+    r._user = user;
+    rooms.push_back(r);
 }
 
 OADataCenter& OADataCenter::getInstance() { return _instance; }

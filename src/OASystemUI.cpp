@@ -83,7 +83,7 @@ void showAdminMainPage(OAAdmin& admin) {
         cout << "4. Add a meeting room" << endl;
         cout << "5. Delete a meeting room" << endl;
         cout << "6. List all meeting room" << endl;
-        cout << "7. Rest all meeting room status" << endl;
+        cout << "7. Reset all meeting room status" << endl;
         cout << "8. Exit admin login" << endl;
         cout << "----------------------------------------" << endl;
         cout << "Please input your number: ";
