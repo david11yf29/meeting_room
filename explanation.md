@@ -46,6 +46,7 @@ meeting_room/
 │   ├── OASystemUI.h
 │   ├── OAUser.h
 │   ├── OAAdmin.h
+│   ├── OAMeetingRoom.h
 │   └── OADataCenter.h
 └── src/               <- 原始碼檔 (.cpp) - 實作
     ├── main.cpp
@@ -53,6 +54,7 @@ meeting_room/
     ├── OASystemUI.cpp
     ├── OAUser.cpp
     ├── OAAdmin.cpp
+    ├── OAMeetingRoom.cpp
     └── OADataCenter.cpp
 ```
 
@@ -252,11 +254,34 @@ class OAUser {
 };
 ```
 
+**OAMeetingRoom.h 的類別定義：**
+```cpp
+class OAMeetingRoom {
+   private:
+    int _mid;       // 會議室編號
+    int _capacity;  // 容納人數
+    OAUser* _user;  // 指向預約者的指標（* 代表指標，稍後會詳細說明）
+
+   public:
+    OAMeetingRoom();
+    OAMeetingRoom(int mid, int capacity);
+
+    int mid();       // 回傳編號
+    int capacity();  // 回傳人數
+    OAUser* user();  // 回傳預約者（指標）
+};
+```
+
 **建立物件（OADataCenter.cpp）：**
 ```cpp
 // 建立 OAUser 物件
-users.push_back(OAUser("zhangsan", "123123", "行政部"));
-users.push_back(OAUser("lisi", "123456", "人力資源部"));
+users.push_back(OAUser("zhangsan", "123123", "Admin Resource"));
+users.push_back(OAUser("lisi", "123456", "HR Resource"));
+
+// 建立 OAMeetingRoom 物件（編號, 容納人數）
+rooms.push_back(OAMeetingRoom(1, 10));  // 1 號室，10 人
+rooms.push_back(OAMeetingRoom(2, 6));   // 2 號室，6 人
+rooms.push_back(OAMeetingRoom(3, 4));   // 3 號室，4 人
 ```
 
 ### 類別與物件的類比
@@ -266,6 +291,7 @@ users.push_back(OAUser("lisi", "123456", "人力資源部"));
 | 房子的藍圖 | 實際的房子 |
 | 餅乾模具 | 一塊餅乾 |
 | OAUser 類別 | 特定的使用者如「zhangsan」 |
+| OAMeetingRoom 類別 | 實際的 1 號會議室（10 人座） |
 
 ---
 
@@ -340,9 +366,22 @@ account.balance = -1000000;  // 災難！
 ```cpp
 class OAUser {
    private:
-    string _username;    // 成員變數
-    string _password;    // 成員變數
-    string _department;  // 成員變數
+    string _username;    // 成員變數（字串）
+    string _password;    // 成員變數（字串）
+    string _department;  // 成員變數（字串）
+};
+```
+
+OAMeetingRoom 有一個**指標型別**的成員變數，這比較特別：
+
+```cpp
+class OAMeetingRoom {
+   private:
+    int    _mid;      // 成員變數（整數）
+    int    _capacity; // 成員變數（整數）
+    OAUser* _user;    // 成員變數（指標！星號 * 代表「指向 OAUser 的指標」）
+                      // 記錄「是哪個用戶預約了這間會議室」
+                      // 如果沒人預約，指向特殊的 ERROR_USER 物件
 };
 ```
 
@@ -437,6 +476,30 @@ OAAdmin admin1;                        // 呼叫版本 1
 OAAdmin admin2("admin", "password");   // 呼叫版本 2
 ```
 
+**OAMeetingRoom 的建構函式多載（含指標初始化）：**
+
+```cpp
+// 宣告（OAMeetingRoom.h）
+OAMeetingRoom();                      // 版本 1：無參數
+OAMeetingRoom(int mid, int capacity); // 版本 2：兩個參數
+
+// 定義（OAMeetingRoom.cpp）
+OAMeetingRoom::OAMeetingRoom() {
+    _mid = 0;
+    _capacity = 0;
+    _user = &OAUser::ERROR_USER;  // 指標初始化：指向「沒人預約」的標記物件
+                                  // & 是「取地址」運算子，稍後會詳細說明
+}
+
+OAMeetingRoom::OAMeetingRoom(int mid, int capacity) {
+    _mid = mid;
+    _capacity = capacity;
+    _user = &OAUser::ERROR_USER;  // 新建的會議室一定是空的，所以指向 ERROR_USER
+}
+```
+
+這裡的重點：**所有新建的會議室，`_user` 指標都初始化為指向 `OAUser::ERROR_USER`**，代表「目前沒有人預約」。
+
 ### 初始化列表（替代語法）
 
 一種更有效率的初始化成員方式：
@@ -468,12 +531,28 @@ OAAdmin::OAAdmin(string username, string password)
 ```cpp
 class OAAdmin {
    public:
-    static OAAdmin ERROR_ADMIN;  // 所有 OAAdmin 物件共享
+    static OAAdmin ERROR_ADMIN;  // 所有 OAAdmin 物件共享的「登入失敗」標記
 };
 
 // 必須在類別外部定義（在 .cpp 檔案中）：
 OAAdmin OAAdmin::ERROR_ADMIN = OAAdmin();
 ```
+
+**OAUser 也有相同的靜態標記物件：**
+```cpp
+// OAUser.h
+class OAUser {
+   public:
+    static OAUser ERROR_USER;  // 「找不到此用戶」或「會議室沒有人預約」的標記
+};
+
+// OAUser.cpp（雖然未在上面展示，但原理相同）
+OAUser OAUser::ERROR_USER = OAUser();
+```
+
+`ERROR_USER` 有兩個用途：
+1. `loginUser()` 找不到用戶時回傳它
+2. `OAMeetingRoom::_user` 指向它，代表「這間會議室沒有人預約」
 
 **重點：**
 - 只存在一個副本，所有實例共享
@@ -502,6 +581,7 @@ int choice = OAUtils::inputNumber();  // 不需要物件！
 2. **共享資料**：對所有物件應該相同的資料
    ```cpp
    OAAdmin::ERROR_ADMIN;  // 「找不到管理員」的標記值
+   OAUser::ERROR_USER;    // 「找不到用戶」或「會議室空著」的標記值
    ```
 
 3. **單例模式**：確保只存在一個實例
@@ -529,6 +609,9 @@ int choice = OAUtils::inputNumber();  // 不需要物件！
 
 ### 程式碼中的範例
 
+本專案有**三個**類別都宣告 `OADataCenter` 為友元：
+
+**OAAdmin.h：**
 ```cpp
 class OAAdmin {
     friend class OADataCenter;  // OADataCenter 可以存取私有成員
@@ -539,17 +622,69 @@ class OAAdmin {
 };
 ```
 
-現在在 `OADataCenter` 中：
+**OAUser.h：**
+```cpp
+class OAUser {
+    friend class OADataCenter;  // OADataCenter 可以存取私有成員
+
+   private:
+    string _username;
+    string _password;
+    string _department;
+};
+```
+
+**OAMeetingRoom.h：**
+```cpp
+class OAMeetingRoom {
+    friend class OADataCenter;  // OADataCenter 可以直接存取 _mid、_capacity、_user
+
+   private:
+    int _mid;
+    int _capacity;
+    OAUser* _user;
+};
+```
+
+現在在 `OADataCenter` 中，可以直接存取所有這些私有成員：
 
 ```cpp
+// 直接讀 admin._username（因為 friend）
 OAAdmin& OADataCenter::loginAdmin(string username, string password) {
     for (OAAdmin& admin : admins) {
-        // 可以直接存取 admin._username 和 admin._password！
         if (admin._username == username && admin._password == password) {
             return admin;
         }
     }
     return OAAdmin::ERROR_ADMIN;
+}
+
+// 直接讀 user._username（因為 friend）
+OAUser& OADataCenter::loginUser(string username, string password) {
+    for (OAUser& user : users) {
+        if (user._username == username && user._password == password) {
+            return user;
+        }
+    }
+    return OAUser::ERROR_USER;
+}
+
+// 直接寫 room._user（因為 friend）
+void OADataCenter::clearMeetingRoomStatus() {
+    for (OAMeetingRoom& room : rooms) {
+        room._user = &OAUser::ERROR_USER;  // 直接修改私有指標成員
+    }
+}
+
+// 直接讀 room._mid（因為 friend）
+bool OADataCenter::addMeetingRoom(int mid, int capacity) {
+    for (OAMeetingRoom& room : rooms) {
+        if (room._mid == mid) {  // 直接存取私有 _mid
+            return false;
+        }
+    }
+    rooms.push_back(OAMeetingRoom(mid, capacity));
+    return true;
 }
 ```
 
@@ -627,6 +762,7 @@ byReference(num); // num 現在是 10
 3. **回傳存取權**：回傳對內部資料的存取權
    ```cpp
    OAAdmin& loginAdmin(...);  // 回傳實際的管理員，不是副本
+   OAUser&  loginUser(...);   // 回傳實際的用戶，不是副本
    ```
 
 ---
@@ -653,8 +789,23 @@ class OADataCenter {
 
 **原始碼檔（OADataCenter.cpp）：**
 ```cpp
-// 初始化唯一的實例
+// 初始化唯一的實例（程式啟動時執行一次，呼叫私有建構函式）
 OADataCenter OADataCenter::_instance = OADataCenter();
+
+// 私有建構函式：預載入所有初始資料
+OADataCenter::OADataCenter() {
+    // 預設管理員
+    admins.push_back(OAAdmin("admin", "admin"));
+
+    // 預設用戶
+    users.push_back(OAUser("zhangsan", "123123", "Admin Resource"));
+    users.push_back(OAUser("lisi", "123456", "HR Resource"));
+
+    // 預設會議室（ID, 容納人數）
+    rooms.push_back(OAMeetingRoom(1, 10));
+    rooms.push_back(OAMeetingRoom(2, 6));
+    rooms.push_back(OAMeetingRoom(3, 4));
+}
 
 // 回傳實例的參考
 OADataCenter& OADataCenter::getInstance() {
@@ -664,18 +815,19 @@ OADataCenter& OADataCenter::getInstance() {
 
 ### 單例如何運作
 
-1. **私有建構函式**：沒有人可以建立新實例
-2. **靜態實例**：一個實例儲存在類別本身中
-3. **公開存取器**：`getInstance()` 提供對該實例的存取
+1. **私有建構函式**：沒有人可以從外部建立新實例
+2. **靜態實例**：一個實例儲存在類別本身中，程式啟動時自動建立
+3. **公開存取器**：`getInstance()` 提供對該唯一實例的存取
 
 ### 使用單例
 
 ```cpp
-// 取得實例
+// 取得實例（每次都回傳同一個物件）
 OADataCenter& dataCenter = OADataCenter::getInstance();
 
 // 使用它
 OAAdmin& admin = dataCenter.loginAdmin("admin", "admin");
+OAUser&  user  = dataCenter.loginUser("zhangsan", "123123");
 ```
 
 ### 為什麼使用單例？
@@ -710,10 +862,39 @@ vector<OAAdmin> admins;        // 空的 OAAdmin 物件向量
 ```cpp
 class OADataCenter {
    private:
-    vector<OAAdmin> admins;  // 管理員的動態陣列
-    vector<OAUser> users;    // 使用者的動態陣列
+    vector<OAAdmin>       admins;  // 管理員的動態陣列
+    vector<OAUser>        users;   // 使用者的動態陣列
+    vector<OAMeetingRoom> rooms;   // 會議室的動態陣列
 };
 ```
+
+這三個 vector 在 `OADataCenter` 建構函式中被填入初始資料：
+
+```cpp
+OADataCenter::OADataCenter() {
+    admins.push_back(OAAdmin("admin", "admin"));          // 加入 1 個管理員
+    users.push_back(OAUser("zhangsan", "123123", "..."));  // 加入 2 個用戶
+    users.push_back(OAUser("lisi", "123456", "..."));
+    rooms.push_back(OAMeetingRoom(1, 10));                 // 加入 3 間會議室
+    rooms.push_back(OAMeetingRoom(2, 6));
+    rooms.push_back(OAMeetingRoom(3, 4));
+}
+```
+
+**回傳 vector 的副本（getUsers / getRooms）：**
+
+```cpp
+vector<OAUser> OADataCenter::getUsers() {
+    vector<OAUser> users_back(users);  // 用複製建構函式建立一份副本
+    return users_back;
+}
+
+vector<OAMeetingRoom> OADataCenter::getRooms() {
+    return vector<OAMeetingRoom>(rooms);  // 直接回傳副本
+}
+```
+
+為什麼回傳副本？因為這樣外部程式碼修改拿到的 vector 時，不會影響 `OADataCenter` 內部的真實資料。
 
 ### 常見的 Vector 操作
 
@@ -853,19 +1034,55 @@ switch (variable) {
 }
 ```
 
-**程式碼中的範例：**
+**主選單的範例（OASystemUI.cpp）：**
 ```cpp
 switch (choice) {
     case 1:
-        showLogin(FLAG_ADMIN);
+        showLogin(FLAG_ADMIN);   // 管理員登入
         break;
     case 2:
-        showLogin(FLAG_USER);
+        showLogin(FLAG_USER);    // 一般用戶登入
         break;
     case 3:
-        goto end;  // 跳到標籤 'end'
+        goto end;                // 跳到標籤 'end'（退出程式）
 }
 ```
+
+**管理員選單的範例（有 8 個選項）：**
+```cpp
+switch (c) {
+    case 1:
+        showAdminAddUserPage(admin);       // 新增用戶
+        break;
+    case 2:
+        showAdminDeleteUserPage(admin);    // 刪除用戶
+        break;
+    case 3:
+        showAdminListUsers(admin);         // 列出所有用戶
+        break;
+    case 4:
+        showAdminAddMeetingRoomPage(admin); // 新增會議室
+        break;
+    case 5:   // 刪除會議室（未完整實作）
+    case 6:   // 列出所有會議室
+    case 7:   // 重置所有會議室狀態
+    case 8:   // 登出
+        goto end;   // 這幾個 case 目前都跳出（注意：沒有 break 就會 fall through！）
+}
+```
+
+**注意 Fall-Through（貫穿）現象：**
+
+當多個 `case` 沒有 `break`，執行到其中一個就會連續往下執行：
+```cpp
+case 5:    // 如果選 5
+case 6:    // 或 6
+case 7:    // 或 7
+case 8:    // 或 8
+    goto end;  // 全部都執行這個
+```
+
+這是 C++ switch 的特性——沒有 `break` 就會「貫穿」到下一個 case。
 
 ### 15.3 If-Else 語句
 
@@ -1065,31 +1282,85 @@ for (auto& n : numbers) { }
 
 ### 標記值模式
 
-本程式碼使用**標記值**來表示錯誤。
+本程式碼使用**標記值**來表示錯誤狀態。這個模式在本專案中出現在**三個地方**。
 
+**場景 1：管理員登入失敗（回傳參考）**
 ```cpp
 class OAAdmin {
    public:
-    static OAAdmin ERROR_ADMIN;  // 特殊的「錯誤」物件
+    static OAAdmin ERROR_ADMIN;  // 特殊的「登入失敗」物件
 };
 
 OAAdmin& OADataCenter::loginAdmin(string username, string password) {
     for (OAAdmin& admin : admins) {
         if (admin._username == username && admin._password == password) {
-            return admin;  // 成功 - 回傳實際的管理員
+            return admin;           // 成功：回傳實際管理員的參考
         }
     }
-    return OAAdmin::ERROR_ADMIN;  // 失敗 - 回傳標記值
+    return OAAdmin::ERROR_ADMIN;   // 失敗：回傳標記物件的參考
 }
 ```
 
-**檢查錯誤：**
+**場景 2：一般用戶登入失敗（回傳參考）**
 ```cpp
+class OAUser {
+   public:
+    static OAUser ERROR_USER;  // 特殊的「登入失敗」物件
+};
+
+OAUser& OADataCenter::loginUser(string username, string password) {
+    for (OAUser& user : users) {
+        if (user._username == username && user._password == password) {
+            return user;           // 成功：回傳實際用戶的參考
+        }
+    }
+    return OAUser::ERROR_USER;    // 失敗：回傳標記物件的參考
+}
+```
+
+**場景 3：會議室的預約狀態（指標指向標記物件）**
+```cpp
+class OAMeetingRoom {
+   private:
+    OAUser* _user;  // 指向預約者；若指向 ERROR_USER 則代表沒人預約
+};
+
+// 建立會議室時，預設「沒人預約」
+OAMeetingRoom::OAMeetingRoom(int mid, int capacity) {
+    _user = &OAUser::ERROR_USER;  // 指標指向 ERROR_USER 物件
+}
+
+// 清除所有預約
+void OADataCenter::clearMeetingRoomStatus() {
+    for (OAMeetingRoom& room : rooms) {
+        room._user = &OAUser::ERROR_USER;  // 把指標重新指回 ERROR_USER
+    }
+}
+```
+
+**檢查錯誤——三種比較方式：**
+```cpp
+// 比較「管理員登入」的結果（比較參考的地址）
 OAAdmin& admin = dataCenter.loginAdmin(username, password);
 if (&admin == &(OAAdmin::ERROR_ADMIN)) {
-    cout << "Login failed";
+    cout << "Admin login failed";
 } else {
-    cout << "Login success";
+    cout << "Admin login success: " << admin.username();
+}
+
+// 比較「用戶登入」的結果（比較參考的地址）
+OAUser& user = dataCenter.loginUser(username, password);
+if (&user == &(OAUser::ERROR_USER)) {
+    cout << "User login failed";
+} else {
+    cout << "Welcome " << user.username();
+}
+
+// 比較「會議室是否有人預約」（比較指標的值）
+if (m.user() == &(OAUser::ERROR_USER)) {
+    cout << "reservable!";   // 指標指向 ERROR_USER -> 沒人預約
+} else {
+    cout << m.user()->username() << " reserved it";  // 有人預約
 }
 ```
 
@@ -1144,28 +1415,60 @@ if (result.has_value()) {
 └──────┬──────┘
        │ 呼叫
        ▼
-┌─────────────────┐
-│  OASystemUI     │  （使用者介面）
-│  - displayMenu  │
-│  - showLogin    │
-└────────┬────────┘
-         │ 使用
-         ▼
-┌─────────────────┐         ┌─────────────┐
-│  OADataCenter   │◄────────│   OAUtils   │
-│  （單例）        │         │  （工具類）  │
-│  - admins[]     │         │  - input    │
-│  - users[]      │         └─────────────┘
-│  - loginAdmin() │
-└────────┬────────┘
-         │ 包含
-         ▼
-┌─────────────────┐    ┌─────────────────┐
-│    OAAdmin      │    │     OAUser      │
-│  - username     │    │  - username     │
-│  - password     │    │  - password     │
-└─────────────────┘    │  - department   │
-                       └─────────────────┘
+┌──────────────────────┐         ┌─────────────┐
+│      OASystemUI      │────────▶│   OAUtils   │
+│  - displayMainPage() │         │ - inputNumber│
+│  - showLogin()       │         └─────────────┘
+│  - showAdminMainPage │
+│  - showAdminAddUser  │
+│  - showAdminDelUser  │
+│  - showAdminAddRoom  │
+└──────────┬───────────┘
+           │ 透過 OAAdmin 操作
+           ▼
+┌──────────────────────┐
+│       OAAdmin        │  ← Facade（門面）
+│  - username()        │
+│  - addUser()         │  ── 委託 ──▶ OADataCenter
+│  - deleteUser()      │
+│  - showAllUsers()    │
+│  - addMeetingRoom()  │
+│  - deleteMeetingRoom │
+│  - clearRoomStatus() │
+│  - showAllRooms()    │
+│  + ERROR_ADMIN       │
+└──────────────────────┘
+           │ getInstance() 直接呼叫
+           ▼
+┌──────────────────────┐
+│    OADataCenter      │  ← Singleton（單例）
+│  - admins: vector    │
+│  - users: vector     │
+│  - rooms: vector     │
+│  + getInstance()     │
+│  - loginAdmin()      │
+│  - loginUser()       │
+│  - addUser()         │
+│  - deleteUser()      │
+│  - addMeetingRoom()  │
+│  - deleteMeetingRoom │
+│  - clearRoomStatus() │
+│  - getUsers()        │
+│  - getRooms()        │
+└──────┬───────────────┘
+       │ 包含（vector）
+       ▼
+┌────────────┐   ┌──────────────┐   ┌──────────────────┐
+│  OAAdmin   │   │   OAUser     │   │  OAMeetingRoom   │
+│ _username  │   │ _username    │   │ _mid             │
+│ _password  │   │ _password    │   │ _capacity        │
+│ ERROR_ADMIN│   │ _department  │   │ _user: OAUser*──▶│
+└────────────┘   │ ERROR_USER   │   └──────────────────┘
+                 └──────────────┘
+                        ▲
+                        │（_user 指標指向此處）
+                  OAUser::ERROR_USER
+                  （表示「沒人預約」）
 ```
 
 ### 執行流程
@@ -1173,19 +1476,38 @@ if (result.has_value()) {
 ```
 1. 程式開始 → main()
 2. main() 呼叫 OASystemUI::displayMainPage()
-3. displayMainPage() 在無限迴圈中顯示選單
-4. 使用者輸入選擇 → OAUtils::inputNumber()
-5. 根據選擇：
-   - 1: showLogin(FLAG_ADMIN) → 管理員登入流程
-   - 2: showLogin(FLAG_USER) → 使用者登入流程
-   - 3: goto end → 退出程式
-6. 登入流程：
-   - 從使用者取得帳號/密碼
-   - OADataCenter::getInstance() 取得單例
-   - loginAdmin() 搜尋匹配的憑證
-   - 回傳管理員參考或 ERROR_ADMIN
-7. 顯示成功/失敗訊息
-8. 返回選單
+3. displayMainPage() 進入無限迴圈，顯示主選單：
+   - 1. Admin Login
+   - 2. User Login
+   - 3. Quit
+4. 使用者輸入選擇 → OAUtils::inputNumber()（帶驗證）
+
+─── 選 1（管理員登入）───
+5a. showLogin(FLAG_ADMIN)：
+    - 顯示登入畫面，讀取帳號/密碼
+    - OADataCenter::getInstance().loginAdmin() 驗證
+    - 失敗：印出錯誤訊息，返回主選單
+    - 成功：進入 showAdminMainPage()
+
+6a. showAdminMainPage() 進入管理員選單（無限迴圈）：
+    - 1. Add user    → showAdminAddUserPage()
+                        → admin.addUser() → OADataCenter::addUser()
+    - 2. Delete user → showAdminDeleteUserPage()
+                        → admin.deleteUser() → OADataCenter::deleteUser()
+    - 3. List users  → admin.showAllUsers() → OADataCenter::getUsers()
+    - 4. Add room    → showAdminAddMeetingRoomPage()
+                        → admin.addMeetingRoom() → OADataCenter::addMeetingRoom()
+    - 5-8. goto end → 登出，返回主選單
+
+─── 選 2（用戶登入）───
+5b. showLogin(FLAG_USER)：
+    - 顯示登入畫面，讀取帳號/密碼
+    - OADataCenter::getInstance().loginUser() 驗證
+    - 失敗：印出錯誤訊息
+    - 成功：印出歡迎訊息（目前沒有更多操作）
+
+─── 選 3（退出）───
+5c. goto end → 印出告別訊息，程式結束
 ```
 
 ### 逐檔案說明
@@ -1204,50 +1526,83 @@ int main() {
 **用途**：程式進入點，啟動使用者介面。
 
 #### OASystemUI.h / OASystemUI.cpp
-**用途**：處理所有使用者介面操作。
+**用途**：處理所有使用者介面操作（View 層）。
 
-關鍵函式 `displayMainPage()`：
-- 顯示主選單
-- 取得使用者輸入
-- 路由到適當的函式（管理員登入、使用者登入或退出）
+| 函式 | 用途 |
+|------|------|
+| `displayMainPage()` | 主選單（無限迴圈）；轉發到 showLogin |
+| `showLogin(int flag)` | 讀取帳號密碼，呼叫 OADataCenter 驗證 |
+| `showAdminMainPage(OAAdmin&)` | 管理員選單（無限迴圈）；8 個操作 |
+| `showAdminAddUserPage(OAAdmin&)` | 讀取資料，呼叫 admin.addUser() |
+| `showAdminDeleteUserPage(OAAdmin&)` | 讀取用戶名，呼叫 admin.deleteUser() |
+| `showAdminListUsers(OAAdmin&)` | 呼叫 admin.showAllUsers() |
+| `showAdminAddMeetingRoomPage(OAAdmin&)` | 讀取 ID 和容量，呼叫 admin.addMeetingRoom() |
 
-關鍵函式 `showLogin(int flag)`：
-- 顯示登入畫面
-- 收集憑證
-- 透過 OADataCenter 驗證
-- 顯示結果
+`#define FLAG_ADMIN 1` 和 `#define FLAG_USER 0` 也定義在這裡，用來區分登入類型。
 
 #### OADataCenter.h / OADataCenter.cpp
-**用途**：中央資料管理（單例模式）。
+**用途**：中央資料管理（單例模式）；所有真實的資料操作都在這裡。
 
 儲存：
-- 所有管理員的列表
-- 所有使用者的列表
+- `vector<OAAdmin> admins` - 所有管理員
+- `vector<OAUser> users` - 所有用戶
+- `vector<OAMeetingRoom> rooms` - 所有會議室
 
-提供：
-- `getInstance()` - 存取唯一的實例
-- `loginAdmin()` - 憑證驗證
+提供的方法：
+| 方法 | 用途 | 回傳值 |
+|------|------|--------|
+| `getInstance()` | 取得單例實例 | `OADataCenter&` |
+| `loginAdmin(user, pw)` | 驗證管理員 | `OAAdmin&`（失敗回傳 ERROR_ADMIN） |
+| `loginUser(user, pw)` | 驗證用戶 | `OAUser&`（失敗回傳 ERROR_USER） |
+| `addUser(user, pw, dept)` | 新增用戶（檢查重複） | `bool` |
+| `deleteUser(user)` | 刪除用戶（用迭代器） | `bool` |
+| `addMeetingRoom(id, cap)` | 新增會議室（檢查重複） | `bool` |
+| `deleteMeetingRoom(id)` | 刪除會議室（用迭代器） | `bool` |
+| `clearMeetingRoomStatus()` | 清除所有預約（指標重設為 ERROR_USER） | `void` |
+| `getUsers()` | 取得用戶列表副本 | `vector<OAUser>` |
+| `getRooms()` | 取得會議室列表副本 | `vector<OAMeetingRoom>` |
 
 #### OAAdmin.h / OAAdmin.cpp
-**用途**：代表管理員。
+**用途**：代表管理員；同時也是 Facade（門面），包裝 OADataCenter 的操作。
 
 包含：
-- 帳號和密碼（私有）
-- 用於建立管理員的建構函式
-- 用於登入失敗的 `ERROR_ADMIN` 標記值
+- `_username`、`_password`（私有，friend OADataCenter 可直接讀取）
+- `static OAAdmin ERROR_ADMIN` — 登入失敗的標記物件
+- `username()` — 取得管理員名稱
+
+所有管理操作都委託給 `OADataCenter`：
+| 方法 | 實際呼叫 |
+|------|---------|
+| `addUser()` | `OADataCenter::getInstance().addUser()` |
+| `deleteUser()` | `OADataCenter::getInstance().deleteUser()` |
+| `showAllUsers()` | `OADataCenter::getInstance().getUsers()` 然後印出 |
+| `addMeetingRoom()` | `OADataCenter::getInstance().addMeetingRoom()` |
+| `deleteMeetingRoom()` | `OADataCenter::getInstance().deleteMeetingRoom()` |
+| `clearMeetingRoomStatus()` | `OADataCenter::getInstance().clearMeetingRoomStatus()` |
+| `showAllMeetingRooms()` | `OADataCenter::getInstance().getRooms()` 然後印出，用 `->` 存取預約者資料 |
 
 #### OAUser.h / OAUser.cpp
-**用途**：代表一般使用者。
+**用途**：代表一般使用者（純資料類別）。
 
 包含：
-- 帳號、密碼和部門
-- 用於建立使用者的建構函式
+- `_username`、`_password`、`_department`（私有，friend OADataCenter 可直接讀取）
+- `static OAUser ERROR_USER` — 兩種用途：登入失敗的標記、會議室「空房」的標記
+- `username()`、`department()` — getter 方法
+
+#### OAMeetingRoom.h / OAMeetingRoom.cpp
+**用途**：代表一間會議室（純資料類別）。
+
+包含：
+- `_mid`（整數）— 會議室編號，friend OADataCenter 可直接讀取
+- `_capacity`（整數）— 容納人數
+- `_user`（`OAUser*` 指標）— 指向預約者；`= &OAUser::ERROR_USER` 代表空房
+- `mid()`、`capacity()`、`user()` — getter 方法（`user()` 回傳指標）
 
 #### OAUtils.h / OAUtils.cpp
-**用途**：工具函式。
+**用途**：工具函式（純靜態方法）。
 
 包含：
-- `inputNumber()` - 帶驗證的安全整數輸入
+- `inputNumber()` — 帶驗證的安全整數輸入：嘗試讀取整數，如果輸入非數字（如 "abc"）則清除錯誤、丟棄壞輸入、重試
 
 ---
 
