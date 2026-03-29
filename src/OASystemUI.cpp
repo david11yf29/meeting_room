@@ -156,7 +156,7 @@ void showUserMainPage(OAUser& user) {
 
         switch (c) {
             case 1:
-
+                showUserBookMeetingRoomPage(user);
                 break;
             case 2:
 
@@ -168,6 +168,8 @@ void showUserMainPage(OAUser& user) {
 
                 goto end;
         }
+        cout << "Press Enter to continue...";
+        cin.get();
     }
 end:
     cout << "Bye, see you next time!" << endl;

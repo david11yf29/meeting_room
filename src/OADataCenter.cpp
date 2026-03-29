@@ -123,7 +123,7 @@ int OADataCenter::bookMeetingRoom(OAUser& user, int mid) {
         return MEETING_ROOM_NOT_FOUND;
     }
 
-    if (it->_user == &OAUser::ERROR_USER) {
+    if (it->_user != &OAUser::ERROR_USER) {
         return MEETING_ROOM_BOOKED;
     }
 
