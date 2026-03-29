@@ -123,6 +123,56 @@ end:
     cout << "Bye, see you next time!" << endl;
 }
 
+void showUserBookMeetingRoomPage(OAUser& user) {
+    system("clear");
+    cout << "Please input the No. of meeting room you want to reserve: "
+         << endl;
+    int mid = OAUtils::inputNumber();
+
+    int res = user.bookMeetingRoom(mid);
+    if (res == MEETING_ROOM_BOOK_SUCCESS) {
+        cout << "Meeting room booked successfully! " << endl;
+    } else if (res == MEETING_ROOM_BOOKED) {
+        cout << "Booked fail, this meeting room already be booked! " << endl;
+    } else if (res == MEETING_ROOM_NOT_FOUND) {
+        cout << "Booked fail, this meeting room do not existed! " << endl;
+    }
+}
+
+void showUserMainPage(OAUser& user) {
+    while (1) {
+        system("clear");
+        cout << "Login success, welcome " << user.department() << "'s "
+             << user.username() << endl;
+        cout << "----------------------------------------" << endl;
+        cout << "1. Reserve a meeting room" << endl;
+        cout << "2. Cancel a reserved meeting room" << endl;
+        cout << "3. List all reserved meeting room" << endl;
+        cout << "4. Exit user login" << endl;
+        cout << "----------------------------------------" << endl;
+        cout << "Please input your operation: " << endl;
+
+        int c = OAUtils::inputNumber();
+
+        switch (c) {
+            case 1:
+
+                break;
+            case 2:
+
+                break;
+            case 3:
+
+                break;
+            case 4:
+
+                goto end;
+        }
+    }
+end:
+    cout << "Bye, see you next time!" << endl;
+}
+
 // 顯示登錄介面, flag 表示身分
 // 1: 管理員登錄
 // 0: 普通用戶登錄
@@ -155,8 +205,7 @@ void showLogin(int flag) {
         if (&user == &(OAUser::ERROR_USER)) {
             cout << "Login failed, return to previous level" << endl;
         } else {
-            cout << "Login success, welcome " << user.department() << "'s "
-                 << user.username() << endl;
+            showUserMainPage(user);
         }
     }
 }

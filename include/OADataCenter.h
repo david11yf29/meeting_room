@@ -34,6 +34,9 @@ class OADataCenter {
     // 清除所有會議室狀態
     void clearMeetingRoomStatus();
 
+    // 預定會議室
+    int bookMeetingRoom(OAUser& user, int mid);
+
     vector<OAUser> getUsers();
     vector<OAMeetingRoom> getRooms();
 };

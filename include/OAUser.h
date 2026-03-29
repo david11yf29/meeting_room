@@ -18,4 +18,6 @@ class OAUser {
 
     string username();
     string department();
+
+    int bookMeetingRoom(int mid);
 };

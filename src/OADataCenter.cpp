@@ -1,4 +1,5 @@
 #include "OADataCenter.h"
+#include "OAUtils.h"
 
 OADataCenter OADataCenter::_instance = OADataCenter();
 
@@ -108,4 +109,24 @@ vector<OAUser> OADataCenter::getUsers() {
 
 vector<OAMeetingRoom> OADataCenter::getRooms() {
     return vector<OAMeetingRoom>(rooms);
+}
+
+int OADataCenter::bookMeetingRoom(OAUser& user, int mid) {
+    auto it = rooms.begin();
+    for (; it != rooms.end(); it++) {
+        if (it->_mid == mid) {
+            break;
+        }
+    }
+
+    if (it == rooms.end()) {
+        return MEETING_ROOM_NOT_FOUND;
+    }
+
+    if (it->_user == &OAUser::ERROR_USER) {
+        return MEETING_ROOM_BOOKED;
+    }
+
+    it->_user = &user;
+    return MEETING_ROOM_BOOK_SUCCESS;
 }

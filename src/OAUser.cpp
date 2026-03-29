@@ -13,3 +13,7 @@ OAUser::OAUser(string username, string password, string department) {
 string OAUser::username() { return _username; }
 
 string OAUser::department() { return _department; }
+
+int OAUser::bookMeetingRoom(int mid) {
+    return OADataCenter::getInstance().bookMeetingRoom(*this, mid);
+}
