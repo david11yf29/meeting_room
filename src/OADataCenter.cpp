@@ -130,3 +130,23 @@ int OADataCenter::bookMeetingRoom(OAUser& user, int mid) {
     it->_user = &user;
     return MEETING_ROOM_BOOK_SUCCESS;
 }
+
+int OADataCenter::cancelBookMeetingRoom(OAUser& user, int mid) {
+    auto it = rooms.begin();
+    for (; it != rooms.end(); it++) {
+        if (it->_mid == mid) {
+            break;
+        }
+    }
+    if (it == rooms.end()) {
+        return CANCEL_MEETING_ROOM_NOT_FOUND;
+    }
+
+    if (it->_user != &user) {
+        return CANCEL_MEETING_ROOM_FAIL;
+    }
+
+    it->_user = &OAUser::ERROR_USER;
+
+    return CANCEL_MEETING_ROOM_SUCCESS;
+}

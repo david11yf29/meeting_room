@@ -135,7 +135,22 @@ void showUserBookMeetingRoomPage(OAUser& user) {
     } else if (res == MEETING_ROOM_BOOKED) {
         cout << "Booked fail, this meeting room already be booked! " << endl;
     } else if (res == MEETING_ROOM_NOT_FOUND) {
-        cout << "Booked fail, this meeting room do not existed! " << endl;
+        cout << "Booked fail, this meeting room do not exist! " << endl;
+    }
+}
+
+void showUserCancelBookMeetingRoom(OAUser& user) {
+    system("clear");
+    cout << "Please input the No. of meeting room you want to cancel: " << endl;
+    int mid = OAUtils::inputNumber();
+
+    int res = user.cancelBookMeetingRoom(mid);
+    if (res == CANCEL_MEETING_ROOM_SUCCESS) {
+        cout << "Cancel booked meeting room successfully! " << endl;
+    } else if (res == CANCEL_MEETING_ROOM_FAIL) {
+        cout << "Cancel fail, you do not book this meeting room! " << endl;
+    } else if (res == CANCEL_MEETING_ROOM_NOT_FOUND) {
+        cout << "Cancel fail, this meeting room do not exist! " << endl;
     }
 }
 
@@ -159,13 +174,13 @@ void showUserMainPage(OAUser& user) {
                 showUserBookMeetingRoomPage(user);
                 break;
             case 2:
-
+                showUserCancelBookMeetingRoom(user);
                 break;
             case 3:
-
+                system("clear");
+                user.showAllBookedMeetingRooms();
                 break;
             case 4:
-
                 goto end;
         }
         cout << "Press Enter to continue...";

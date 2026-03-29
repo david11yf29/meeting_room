@@ -36,6 +36,7 @@ class OADataCenter {
 
     // 預定會議室
     int bookMeetingRoom(OAUser& user, int mid);
+    int cancelBookMeetingRoom(OAUser& user, int mid);
 
     vector<OAUser> getUsers();
     vector<OAMeetingRoom> getRooms();

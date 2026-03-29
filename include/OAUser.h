@@ -20,4 +20,6 @@ class OAUser {
     string department();
 
     int bookMeetingRoom(int mid);
+    int cancelBookMeetingRoom(int mid);
+    void showAllBookedMeetingRooms();
 };
