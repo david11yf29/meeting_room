@@ -46,14 +46,28 @@ void showAdminAddMeetingRoomPage(OAAdmin& admin) {
     system("clear");
     int mid, capacity;
     cout << "Please input the No. of meeting room: ";
-    cin >> mid;
+    mid = OAUtils::inputNumber();
     cout << "Please input the capacity of meeting room: ";
-    cin >> capacity;
+    capacity = OAUtils::inputNumber();
 
     if (admin.addMeetingRoom(mid, capacity)) {
         cout << "Add meeting room success! " << endl;
     } else {
         cout << "Add meeting room fail. This meeting room already existed "
+             << endl;
+    }
+}
+
+void showAdminDeleteMeetingRoomPage(OAAdmin& admin) {
+    system("clear");
+    int mid;
+    cout << "Please input the No. of meeting room you want to delete: ";
+    mid = OAUtils::inputNumber();
+
+    if (admin.deleteMeetingRoom(mid)) {
+        cout << "Delete meeting room success! " << endl;
+    } else {
+        cout << "Delete meeting room fail. This meeting room is not existed"
              << endl;
     }
 }
@@ -90,8 +104,15 @@ void showAdminMainPage(OAAdmin& admin) {
                 showAdminAddMeetingRoomPage(admin);
                 break;
             case 5:
+                showAdminDeleteMeetingRoomPage(admin);
+                break;
             case 6:
+                system("clear");
+                admin.showAllMeetingRooms();
+                break;
             case 7:
+                admin.clearMeetingRoomStatus();
+                break;
             case 8:
                 goto end;
         }
