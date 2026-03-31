@@ -1,0 +1,42 @@
+{
+  "skill_name": "cpp-explainer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just inherited this C++ project and I have no idea what's going on. I've only ever written Java. Can you explain what all this code does and help me understand the C++ concepts?",
+      "expected_output": "explanation.md created with numbered items covering C++ concepts; readable by a Java developer; good depth and code examples",
+      "files": [],
+      "assertions": [
+        "explanation.md was created or updated in the project directory",
+        "explanation.md contains at least 10 numbered items (e.g. Item #1, Item #2)",
+        "Pointers and/or references are explained with examples",
+        "At least one code snippet from the project source files is included"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Please analyze the C++ project in the current directory and generate an explanation.md file for me. I'm a beginner — explain everything in detail and translate the final result to Traditional Chinese.",
+      "expected_output": "explanation.md created, fully in Traditional Chinese, with code blocks in English, numbered items, covering major C++ concepts from the project",
+      "files": [],
+      "assertions": [
+        "explanation.md was created or updated in the project directory",
+        "explanation.md prose is predominantly in Traditional Chinese (contains Chinese characters)",
+        "Code blocks inside explanation.md are in English (not translated)",
+        "Singleton pattern is explained",
+        "Friend class concept is explained"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "There's a C++ codebase in my project folder with include/ and src/ directories. I want to learn what it does and understand the C++ patterns used. I come from a Java background.",
+      "expected_output": "explanation.md with Java comparisons for each C++ concept, covers patterns like Singleton, friend classes, pointers vs references",
+      "files": [],
+      "assertions": [
+        "explanation.md was created or updated in the project directory",
+        "At least one explicit comparison to Java is made",
+        "Pointers vs references is covered",
+        "STL containers (vector or similar) are explained"
+      ]
+    }
+  ]
+}
